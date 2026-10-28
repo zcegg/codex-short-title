@@ -1,0 +1,15 @@
+{
+  "name": "codex-short-title",
+  "interface": {
+    "displayName": "Codex 短标题"
+  },
+  "plugins": [
+    {
+      "name": "oil-codex-title",
+      "source": {
+        "source": "local",
+        "path": "./"
+      }
+    }
+  ]
+}
