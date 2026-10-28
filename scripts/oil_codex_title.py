@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULTS = {
     "enabled": True,
     "title_style": "classic",
+    "auto_group_since": 0,
     "model": "gpt-5.6-luna",
     "service_tier": "priority",
     "codex_bin": None,
@@ -71,6 +72,8 @@ def load_config(root):
     config = DEFAULTS | read_json(root / "config.json")
     if config["title_style"] not in ("classic", "short"):
         raise ValueError("title_style 必须是 classic 或 short")
+    if type(config["auto_group_since"]) is not int or config["auto_group_since"] < 0:
+        raise ValueError("auto_group_since 必须是非负整数时间戳")
     if not isinstance(config["enabled"], bool):
         raise ValueError("enabled 必须是布尔值")
     for key, lower, upper in (("recent_turns", 3, 5), ("max_context_chars", 3000, 20000),
@@ -515,6 +518,7 @@ def main():
     sub.add_parser("resume", help="恢复自动命名")
     p = sub.add_parser("configure", help="配置独立命名模型或兼容的可执行文件")
     p.add_argument("--title-style", choices=("classic", "short"))
+    p.add_argument("--auto-group", choices=("on", "off"))
     p.add_argument("--model")
     p.add_argument("--codex-bin")
     p.add_argument("--service-tier", choices=("standard", "fast"))
@@ -547,6 +551,8 @@ def main():
             else:
                 if args.title_style:
                     changes["title_style"] = args.title_style
+                if args.auto_group:
+                    changes["auto_group_since"] = (config["auto_group_since"] or int(time.time())) if args.auto_group == "on" else 0
                 if args.model:
                     changes["model"] = args.model
                     # 新模型未必支持 Fast；切换模型时不继承旧模型的服务档位。
@@ -593,6 +599,13 @@ def main():
                     )
                     if is_hook and result["status"] not in ("renamed", "kept"):
                         audit(root, thread_id, result)
+                    if is_hook and config["auto_group_since"]:
+                        from auto_group import process_group
+                        try:
+                            grouped = process_group(backend, binary, thread_id, root, config, turn_id)
+                            audit(root, thread_id, {"status": "grouping", "grouping": grouped})
+                        except Exception as exc:
+                            audit(root, thread_id, {"status": "grouping_error", "error_type": type(exc).__name__})
         if not is_hook:
             print(json.dumps(result, ensure_ascii=False))
         return 0

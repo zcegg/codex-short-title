@@ -1,6 +1,6 @@
 {
   "name": "oil-codex-title",
-  "version": "0.1.1+short.20261028",
+  "version": "0.2.0+grouping.20261028",
   "description": "支持对象加动作短标题的 oil-codex-title 定制版",
   "author": {
     "name": "oil"
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Codex 短标题",
     "shortDescription": "让 Codex 话题标题跟上讨论内容",
-    "longDescription": "基于 oil-codex-title 的短标题定制版。可配置 short 或 classic，保留锁定与手动标题保护；不自动分组。",
+    "longDescription": "短标题与新聊天自动归组。优先已有项目，其次已有分组；保留锁定与手动调整，不创建新分组。",
     "developerName": "oil",
     "category": "Productivity",
     "capabilities": [],
